@@ -60,8 +60,8 @@ for categorie in categories_array:
         geocode_equipements = json.loads(geocode_content)
         
         if (len(geocode_equipements["results"]) > 0):
-            paris_equipements["data"][i]["coord"] = str(geocode_equipements["results"][0]["geometry"]["location"]["lng"])
-            paris_equipements["data"][i]["coord"] += ':' + str(geocode_equipements["results"][0]["geometry"]["location"]["lat"])
+            paris_equipements["data"][i]["coord"] = {"lon": str(geocode_equipements["results"][0]["geometry"]["location"]["lng"]),
+            "lat": str(geocode_equipements["results"][0]["geometry"]["location"]["lat"])}
             print paris_equipements["data"][i]["coord"]
             i += 1
         else:
