@@ -4,7 +4,7 @@ import urllib2
 import json
 
 ###################################################
-categories = "235" # (pour l'instant entrer plusieurs catégories ne fonctionne pas...)
+categories = "238,235" # il y aura 1 requête et 1 fichier par catégorie entrée ici, car pour l'instant les requêtes à l'API de Paris avec plusieurs catégories ne fonctionnent pas...
 ###################################################
 
 # les catégories :
@@ -15,55 +15,61 @@ categories = "235" # (pour l'instant entrer plusieurs catégories ne fonctionne p
 # tous les cinémas et théatres de Paris : "34,70,85,74"
 # les autres : https://api.paris.fr:3000/data/1.0/Equipements/get_categories/?token=d7ff0546ffe8d9e14ff45d0f0468cdd665ca6f4ed14c0f96e10c5e849788d5b3
 
-paris_url = "https://api.paris.fr:3000/data/1.0/Equipements/get_equipements/?token="
-paris_url += "d7ff0546ffe8d9e14ff45d0f0468cdd665ca6f4ed14c0f96e10c5e849788d5b3" # mon identifiant perso
-paris_url += "&cid="
-paris_url += categories
-paris_url += "&offset=0&limit=100"
+categories_array = categories.split(',')
 
-paris_req = urllib2.Request(paris_url)
-paris_handle = urllib2.urlopen(paris_req)
-paris_content = paris_handle.read()
-paris_equipements = json.loads(paris_content)
-
-i = 0
-equipements = len(paris_equipements["data"])-1
-
-while i < equipements:
-
-    print i
+for categorie in categories_array:
     
-    address_array = str.split(paris_equipements["data"][i]["address"].encode('utf-8'));
-    zipCode_array = str.split(str(paris_equipements["data"][i]["zipCode"]));
+    paris_url = "https://api.paris.fr:3000/data/1.0/Equipements/get_equipements/?token="
+    paris_url += "d7ff0546ffe8d9e14ff45d0f0468cdd665ca6f4ed14c0f96e10c5e849788d5b3" # mon identifiant perso
+    paris_url += "&cid="
+    paris_url += categorie
+    paris_url += "&offset=0&limit=100"
 
-    address = ''
-    
-    for i2 in address_array:
-        address += str(i2) + '+'
+    paris_req = urllib2.Request(paris_url)
+    paris_handle = urllib2.urlopen(paris_req)
+    paris_content = paris_handle.read()
+    paris_equipements = json.loads(paris_content)
 
-    for i3 in zipCode_array:
-        address += str(i3) + '+'
+    i = 0
+    equipements = len(paris_equipements["data"])-1
 
-    address += "Paris,+France"
-    
-    geocode_url = "http://maps.googleapis.com/maps/api/geocode/json?address="
-    geocode_url += address
-    geocode_url += "&sensor=false"
+    while i < equipements:
 
-    geocode_req = urllib2.Request(geocode_url)
-    geocode_handle = urllib2.urlopen(geocode_req)
-    geocode_content = geocode_handle.read()
-    geocode_equipements = json.loads(geocode_content)
-    
-    if (len(geocode_equipements["results"]) > 0):
-        paris_equipements["data"][i]["coord"] = str(geocode_equipements["results"][0]["geometry"]["location"]["lng"])
-        paris_equipements["data"][i]["coord"] += ':' + str(geocode_equipements["results"][0]["geometry"]["location"]["lat"])
-        print paris_equipements["data"][i]["coord"]
-        i += 1
-    else:
-        print "zap! no geocode answer"
+        print i
+        
+        address_array = str.split(paris_equipements["data"][i]["address"].encode('utf-8'));
+        zipCode_array = str.split(str(paris_equipements["data"][i]["zipCode"]));
 
-outputFile = open("parisEquipements_"+str(categories)+".json", 'w')
-outputFile.write(json.dumps(paris_equipements));
+        address = ''
+        
+        for i2 in address_array:
+            address += str(i2) + '+'
 
-print ("done!")
+        for i3 in zipCode_array:
+            address += str(i3) + '+'
+
+        address += "Paris,+France"
+        
+        geocode_url = "http://maps.googleapis.com/maps/api/geocode/json?address="
+        geocode_url += address
+        geocode_url += "&sensor=false"
+
+        geocode_req = urllib2.Request(geocode_url)
+        geocode_handle = urllib2.urlopen(geocode_req)
+        geocode_content = geocode_handle.read()
+        geocode_equipements = json.loads(geocode_content)
+        
+        if (len(geocode_equipements["results"]) > 0):
+            paris_equipements["data"][i]["coord"] = str(geocode_equipements["results"][0]["geometry"]["location"]["lng"])
+            paris_equipements["data"][i]["coord"] += ':' + str(geocode_equipements["results"][0]["geometry"]["location"]["lat"])
+            print paris_equipements["data"][i]["coord"]
+            i += 1
+        else:
+            print "zap! no geocode answer"
+
+    outputFile = open("parisEquipements_"+str(categorie)+".json", 'w')
+    outputFile.write(json.dumps(paris_equipements));
+
+    print "done for " + categorie
+
+print "finish"
