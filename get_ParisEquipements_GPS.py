@@ -31,7 +31,7 @@ for categorie in categories_array:
     paris_equipements = json.loads(paris_content)
 
     i = 0
-    equipements = len(paris_equipements["data"])-1
+    equipements = len(paris_equipements["data"])
 
     while i < equipements:
 
